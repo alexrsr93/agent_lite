@@ -21,10 +21,19 @@ class DropMessageStats:
     final_number_tokens: int
 
 
+def _get_tiktoken_model_name(model: str) -> str:
+    """Map model names to tiktoken-recognized equivalents"""
+    model_mapping = {
+        "gpt-4.1": "gpt-4o",  # GPT-4.1 uses same tokenizer as GPT-4o
+        "gpt-4.1-mini": "gpt-4o-mini",  # GPT-4.1-mini uses same tokenizer as GPT-4o-mini
+    }
+    return model_mapping.get(model, model)
+
+
 def _number_messages_to_drop(
     model: str, max_tokens: int, messages: list[str]
 ) -> DropMessageStats:
-    encoding = tiktoken.encoding_for_model(model)
+    encoding = tiktoken.encoding_for_model(_get_tiktoken_model_name(model))
     number_tokens = sum(len(encoding.encode_ordinary(m)) for m in messages)
     if number_tokens <= max_tokens:
         return DropMessageStats(
